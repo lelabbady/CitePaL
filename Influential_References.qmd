@@ -1,0 +1,104 @@
+---
+title: "Which papers are referenced most across research interests"
+author: Leila Elabbady and Ellen Lesser
+format: html
+project: website
+page-layout: full
+toc: true
+jupyter: python3
+---
+
+#### Overview 
+We built a tool to help researchers find foundational papers for a given keyword, or set of keywords.
+
+The original dataset included a list of papers with their semantic scholar metadata. We will refer to this initial set of 65 papers as source papers. The semantic scholar metadata includes all of the references for each of these source papers. These were all aggregated into a reference paper dataset. With these two sets of papers, the question we sought out to ask was - **can we create a visualization to aid researchers to quickly find important papers within a given research interest?**  
+
+"Important" here is measured by both number of citations as well as the number of source papers that have referenced the same reference paper.
+
+**To use:** Each source paper was labelled with tags that refer to the general content. The user can click on the bar chart to select from a subset of keywords (or multi-select with [shift]+click), and the scatter plot will auto-populate with the referece papers that are cited by this subset of source papers.
+
+**Interpreting the results:** Each point in the scatter plot is a reference paper, plotted by year (x-axis) and number of citations (y-axis). The size and color of the point denotes how many papers in the selected group share that reference. This visually points users to points that are larger-darker and/or in the upper half of the plot as papers that are considered important within the field. In order to orient the user further, we included a tooltip with the reference paper's title, first author, and publishing year.
+
+
+```{python}
+#| echo: false
+# import packages
+import json
+import numpy as np
+import altair as alt
+import pandas as pd
+```
+
+```{python}
+#| echo: false
+# data frame formatting
+merged_df = pd.read_pickle('./data/reference_df_with_tags.pkl')
+merged_edges = merged_df.groupby(['ref_title', 'class_paper']).size().reset_index(name='count')
+
+merged_df.query('citationCount == 0').shape
+merged = merged_df.query('citationCount != 0')
+merged = merged_df[~merged_df.year.isna()]
+merged.shape
+
+source_df = merged.copy()
+source_df = source_df.reset_index()
+
+source_bar = source_df.copy().iloc[:,-4:].drop_duplicates()
+unique_idxs = source_bar.index.tolist()
+
+unique_idxs = source_bar.index.tolist()
+
+is_valid = [True if i in unique_idxs else False for i in source_df.index.tolist() ]
+source_df['is_valid'] = is_valid
+```
+
+```{python}
+#| echo: false
+# plot!
+source = source_df[:5000].sort_values('shared_by')
+year_ticks = [int(i) for i in np.arange(1880,2030,10)]
+
+pts = alt.selection(type="multi", encodings=['y','color'])
+# Top panel is scatter plot of temperature vs time
+points = alt.Chart(source).mark_point().encode(
+    alt.X('year:N', title='Year',
+         axis=alt.Axis(values=year_ticks)),
+    alt.Y('citationCount:Q',
+        title='Citation Count',
+        scale=alt.Scale(type="log")
+    ),
+    alt.Color('shared_by:Q',scale=alt.Scale(scheme='goldorange'), title = 'Cross Reference Count'),
+    tooltip=['ref_title','first_author', 'year'],
+    #color=alt.condition(brush, color, alt.value('lightgray')),
+    size=alt.Size('shared_by:Q')
+).properties(
+    width=700,
+    height=550
+).transform_filter(
+    pts
+)
+
+scale = alt.Scale(domain=['theory', 'tools'],
+                  range=['#249EA0', '#005F60'])
+color = alt.Color('modes:N', scale=scale)
+
+bars = alt.Chart(source.dropna()).transform_filter(
+    alt.FieldEqualPredicate(field='is_valid', equal=True)
+).mark_bar().encode(
+    y='value',
+    x='count()',
+    color=alt.condition(pts, color, alt.value('gray'))
+).properties(
+    width=700
+).add_selection(pts)
+
+alt.vconcat(
+    bars,
+    points,
+    title="Which Papers Are Most Referenced Across Disciplines?"
+)
+```
+
+**Future directions:** Right now, this tool is only for small-scale datasets; we manually labeled the papers. In the future, this tool could be scaled my assigning keywords computationally i.e. by taking the most used words (with a filter for common words like "the").
+
+**A note about filtering:** to build this proof-of-concept, we filtered out referenced papers with 0 semantic scholar citations.
