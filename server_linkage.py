@@ -18,8 +18,13 @@ from flask_cors import CORS
 import openai
 
 import os
+import io
 
-api_key = os.env['OPENAI_KEY']
+import altair as alt
+import pandas as pd
+
+
+api_key = os.environ['OPENAI_KEY']
 openai.api_key = api_key
 
 app = Flask(__name__)
@@ -290,9 +295,80 @@ def render_paper():
     pre = '<div>Grouping references of paper {}</div>'.format(format_paper(paper_details))
     return pre + html
 
+@app.route("/refgraph.json")
+def influential_refs():
+    chart = get_ref_graph()
+    out = io.StringIO()
+    chart.save(out, format='json')
+    return out.getvalue()
+
+def get_ref_graph():
+    merged_df = pd.read_pickle('data/reference_df_with_tags.pkl')
+    merged_edges = merged_df.groupby(['ref_title', 'class_paper']).size().reset_index(name='count')
+
+    merged = merged_df.query('citationCount != 0')
+    merged = merged_df[~merged_df.year.isna()]
+
+    source_df = merged.copy()
+    source_df = source_df.reset_index()
+
+    source_bar = source_df.copy().iloc[:,-4:].drop_duplicates()
+    unique_idxs = source_bar.index.tolist()
+
+    unique_idxs = source_bar.index.tolist()
+
+    is_valid = [True if i in unique_idxs else False for i in source_df.index.tolist() ]
+    source_df['is_valid'] = is_valid
+
+    # plot!
+    source = source_df[:5000].sort_values('shared_by')
+    year_ticks = [int(i) for i in np.arange(1880,2030,10)]
+
+    pts = alt.selection(type="multi", encodings=['y','color'])
+    # Top panel is scatter plot of temperature vs time
+    points = alt.Chart(source).mark_point().encode(
+        alt.X('year:N', title='Year',
+             axis=alt.Axis(values=year_ticks)),
+        alt.Y('citationCount:Q',
+            title='Citation Count',
+            scale=alt.Scale(type="log")
+        ),
+        alt.Color('shared_by:Q',scale=alt.Scale(scheme='goldorange'), title = 'Cross Reference Count'),
+        tooltip=['ref_title','first_author', 'year'],
+        #color=alt.condition(brush, color, alt.value('lightgray')),
+        size=alt.Size('shared_by:Q')
+    ).properties(
+        width=700,
+        height=550
+    ).transform_filter(
+        pts
+    )
+
+    scale = alt.Scale(domain=['theory', 'tools'],
+                      range=['#249EA0', '#005F60'])
+    color = alt.Color('modes:N', scale=scale)
+
+    bars = alt.Chart(source.dropna()).transform_filter(
+        alt.FieldEqualPredicate(field='is_valid', equal=True)
+    ).mark_bar().encode(
+        y='value',
+        x='count()',
+        color=alt.condition(pts, color, alt.value('gray'))
+    ).properties(
+        width=700
+    ).add_selection(pts)
+
+    chart = alt.vconcat(
+        bars,
+        points,
+        title="Which Papers Are Most Referenced Across Disciplines?"
+    )
+    return chart
+
+
 @app.route('/')
 def hello():
-    return "Hello from paper GPT3 interface"
+    return "Hello from CitePal server"
 
 if __name__ == "__main__":
     app.run(debug=False, host='0.0.0.0', port=7500)

@@ -19,6 +19,11 @@
          }
         </style>
         <script src="https://unpkg.com/htmx.org@1.8.2"></script>
+
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega@5"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-lite@4.17.0"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-embed@6"></script>
+
     </head>
     <body>
 
@@ -154,5 +159,33 @@
                     <li><a href="https://www.semanticscholar.org/paper/21ea5e0048b34ef870c91594581fabd5d98315af">Mary Beth Kery et al. (2020) mage: Fluid Moves Between Code and Graphical Work in Computational Notebooks. <i>UIST</i></a></li></ul></details>
         </div>
 
+        <br/>
+        <button onclick="showGraph()">
+            Show the graph!
+        </button>
+
+        <div id="vis"></div>
+
+        <script>
+         function showGraph() {
+             fetch("http://localhost:7500/refgraph.json")
+                 .then((response) => response.json())
+                 .then(function (spec) {
+                           var embedOpt = {"mode": "vega-lite"};
+
+                     function showError(el, error){
+                         el.innerHTML = ('<div class="error" style="color:red;">'
+                                       + '<p>JavaScript Error: ' + error.message + '</p>'
+                                       + "<p>This usually means there's a typo in your chart specification. "
+                                       + "See the javascript console for the full traceback.</p>"
+                                       + '</div>');
+                         throw error;
+                     }
+                     const el = document.getElementById('vis');
+                     vegaEmbed("#vis", spec, embedOpt)
+                         .catch(error => showError(el, error));
+                 });
+         }
+        </script>
     </body>
 </html>
