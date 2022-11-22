@@ -43,7 +43,7 @@ def get_details(paper_id):
     return details
 
 def get_cse599_data():
-    with open('cse599d-paper-data.json', 'r') as f:
+    with open('data/paper_data.json', 'r') as f:
         data = json.load(f)
     data = [d['s2data'] for d in data if d.get('s2data', None) is not None]
     return data
@@ -275,13 +275,13 @@ def process_data(data):
         if len(possible) == 0: break
         pool.map(Group.fetch_title, possible)
 
-    html = render_hierarchy(root)
-    return html
+    return root
 
 @app.route('/cse599d')
 def render_cse599():
     data = get_cse599_data()
-    html = process_data(data)
+    root = process_data(data)
+    html = render_hierarchy(root)
     pre = '<div>Papers from CSE 599D: The Future of Scholarly Communication</div>'
     return pre + html
 
@@ -290,7 +290,8 @@ def render_paper():
     url = request.args['url']
     paper_id = 'URL:' + url
     data = fetch_paper_data(paper_id)
-    html = process_data(data)
+    root = process_data(data)
+    html = render_hierarchy(root)
     paper_details = get_details(paper_id)
     pre = '<div>Grouping references of paper {}</div>'.format(format_paper(paper_details))
     return pre + html
