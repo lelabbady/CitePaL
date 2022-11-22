@@ -359,9 +359,30 @@ def get_ref_graph():
         width=700
     ).add_selection(pts)
 
+    # Base chart for data tables
+    ranked_text = alt.Chart(source).mark_text().encode(
+        y=alt.Y('row_number:O',axis=None, sort=alt.EncodingSortField('shared_by:Q', order = 'descending'))
+    ).transform_window(
+        row_number='row_number()'
+    ).transform_filter(
+        pts
+    ).transform_window(
+        rank='rank(row_number)'
+    ).transform_filter(
+        alt.datum.rank<5
+    )
+
+    # Data Table
+    year = ranked_text.encode(text='year:N').properties(title='Year')
+    title = ranked_text.encode(text='ref_title').properties(title='title')
+    cites = ranked_text.encode(text='citationCount:Q').properties(title='Citations')
+    sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
+    text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
+
     chart = alt.vconcat(
         bars,
         points,
+        text,
         title="Which Papers Are Most Referenced Across Disciplines?"
     )
     return chart
