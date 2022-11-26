@@ -361,7 +361,7 @@ def influential_refs():
     return out.getvalue()
 
 def get_ref_graph(user_data_groups = None):
-    if user_data_groups = None:
+    if user_data_groups == None:
         merged_df = pd.read_pickle('data/reference_df_with_tags.pkl')
         merged_edges = merged_df.groupby(['ref_title', 'class_paper']).size().reset_index(name='count')
 
