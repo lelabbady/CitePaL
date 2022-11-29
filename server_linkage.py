@@ -35,18 +35,16 @@ CORS(app)
 def get_references(paper_id):
     ref_url_format = 'https://api.semanticscholar.org/graph/v1/paper/{}/references?limit=200'
     ref_url = ref_url_format.format(paper_id)
-    res = requests.get(ref_url,
-                       headers={'x-api-key': s2_api_key})
+    res = requests.get(ref_url, headers={'x-api-key': s2_api_key})
     data = json.loads(res.text)
     return data
 
 
 @functools.lru_cache(maxsize=4096)
 def get_details(paper_id):
-    get_details_format = 'https://api.semanticscholar.org/graph/v1/paper/{}?fields=url,year,authors,venue,embedding,title'
+    get_details_format = 'https://api.semanticscholar.org/graph/v1/paper/{}?fields=url,year,authors,citationCount,venue,embedding,title'
     url = get_details_format.format(paper_id)
-    res = requests.get(url,
-                       headers={'x-api-key': s2_api_key})
+    res = requests.get(url, headers={'x-api-key': s2_api_key})
     details = json.loads(res.text)
     return details
 
