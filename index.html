@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Citation Grouper</title>
+        <title>CitePal</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -27,7 +27,7 @@
     </head>
     <body>
 
-        <h1>Citation Grouper</h1>
+        <h1>CitePal: Your friendly paper finder</h1>
         <p>
             In this demo, I show a vision for grouping and displaying a group of citations hierarchically.
             I group papers using hierachical clustering based on the
@@ -42,13 +42,13 @@
         </p>
 
 
-        <form hx-target="#toswap" hx-get="http://localhost:7500//getpaper">
+        <form hx-target="#toswap" hx-get="/getpaper">
             <label>Semantic Scholar URL</label>
             <input type="text" name="url" value="">
             <button>Submit</button>
         </form>
 
-        <button hx-target="#toswap" hx-get="http://localhost:7500//cse599d">
+        <button hx-target="#toswap" hx-get="/cse599d">
             Show me CSE599D papers
         </button>
 
@@ -58,11 +58,24 @@
         </div>
 
         <br/>
+
+        <section id="overview" class="level4">
+            <h4 class="anchored" data-anchor-id="overview">Overview<a class="anchorjs-link " aria-label="Anchor" data-anchorjs-icon="" href="#overview" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h4>
+            <p>We built a tool to help researchers find foundational papers for a given keyword, or set of keywords.</p>
+            <p>The original dataset included a list of papers with their semantic scholar metadata. We will refer to this initial set of 65 papers as source papers. The semantic scholar metadata includes all of the references for each of these source papers. These were all aggregated into a reference paper dataset. With these two sets of papers, the question we sought out to ask was - <strong>can we create a visualization to aid researchers to quickly find important papers within a given research interest?</strong></p>
+            <p>“Important” here is measured by both number of citations as well as the number of source papers that have referenced the same reference paper.</p>
+            <p><strong>To use:</strong> Each source paper was labelled with tags that refer to the general content. The user can click on the bar chart to select from a subset of keywords (or multi-select with [shift]+click), and the scatter plot will auto-populate with the referece papers that are cited by this subset of source papers.</p>
+            <p><strong>Interpreting the results:</strong> Each point in the scatter plot is a reference paper, plotted by year (x-axis) and number of citations (y-axis). The size and color of the point denotes how many papers in the selected group share that reference. This visually points users to points that are larger-darker and/or in the upper half of the plot as papers that are considered important within the field. In order to orient the user further, we included a tooltip with the reference paper’s title, first author, and publishing year.</p>
+        </section>
+
+        <br/>
         <button onclick="showGraph()">
             Show the graph!
         </button>
 
         <br/>
+
+
 
         <div id="vis"></div>
 
@@ -82,7 +95,7 @@
                  el.innerHTML = "Please select at least one group!";
                  return;
              }
-             fetch("http://localhost:7500/postgraph", {
+             fetch("/postgraph", {
                  method: 'POST',
                  headers: {
                      'Content-Type': 'application/json;charset=utf-8'
