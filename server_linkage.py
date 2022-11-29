@@ -528,4 +528,4 @@ def hello():
     return "Hello from CitePal server"
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port=7500)
+    app.run(debug=False, host='0.0.0.0', port=7500, threaded=True)
