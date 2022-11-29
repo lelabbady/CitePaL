@@ -68,9 +68,18 @@
 
         <script>
          function showGraph() {
-             const values = htmx.values(htmx.find("#checked-groups"));
-             if(values.ids.length == 0) {
-                 htmx.find("#vis").innerHTML = "Please select at least one group!";
+             var form = htmx.find("#checked-groups");
+             var values = {};
+             if(form != null) {
+                 values = htmx.values(form);
+                 if(typeof(values.ids) == "string") {
+                     values.ids = [values.ids];
+                     console.log(values);
+                 }
+             }
+             if(values.ids === undefined || values.ids.length == 0) {
+                 var el = document.getElementById("vis");
+                 el.innerHTML = "Please select at least one group!";
                  return;
              }
              fetch("http://localhost:7500/postgraph", {
@@ -92,6 +101,7 @@
                        throw error;
                    }
                    const el = document.getElementById('vis');
+                   el.innerHTML = '';
                    vegaEmbed("#vis", spec, embedOpt)
                        .catch(error => showError(el, error));
                });

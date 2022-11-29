@@ -421,6 +421,8 @@ def get_ref_graph(user_data_groups = None):
         source_df = merged.copy()
     else:
         source_df = get_source_df(user_data_groups)
+        source_df = source_df[~source_df['citationCount'].isna()]
+        source_df = source_df.query('citationCount != 0')
         source_df['value'] = source_df['group']
 
     source_df = source_df.reset_index()
@@ -459,7 +461,7 @@ def get_ref_graph(user_data_groups = None):
 
     scale = alt.Scale(domain=['theory', 'tools'],
                       range=['#249EA0', '#005F60'])
-    color = alt.Color('modes:N', scale=scale, legned=None)
+    color = alt.Color('modes:N', scale=scale, legend=None)
 
     bars = alt.Chart(source.dropna()).transform_filter(
         alt.FieldEqualPredicate(field='is_valid', equal=True)
@@ -471,52 +473,52 @@ def get_ref_graph(user_data_groups = None):
         width=400
     ).add_selection(pts)
 
-# Base chart for data tables
-ranked_text = alt.Chart(source).mark_text().encode(
-    y=alt.Y('row_number:O',axis=None)
-).transform_window(
-    row_number='row_number()'
-).transform_filter(
-    pts
-).transform_window(
-    rank='rank(row_number)'
-).transform_filter(
-    alt.datum.rank<7
-).properties(
-    width = 10
-)
+    # Base chart for data tables
+    ranked_text = alt.Chart(source).mark_text().encode(
+        y=alt.Y('row_number:O',axis=None)
+    ).transform_window(
+        row_number='row_number()'
+    ).transform_filter(
+        pts
+    ).transform_window(
+        rank='rank(row_number)'
+    ).transform_filter(
+        alt.datum.rank<7
+    ).properties(
+        width = 10
+    )
 
-# Data Tables
-year = ranked_text.encode(text='year:N').properties(title='Year')
-title = ranked_text.encode(text='ref_title').properties(title='Paper Title')
-cites = ranked_text.encode(text='citationCount:Q').properties(title='Citations')
-sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
-text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
+    # Data Tables
+    year = ranked_text.encode(text='year:N').properties(title='Year')
+    title = ranked_text.encode(text='ref_title').properties(title='Paper Title')
+    cites = ranked_text.encode(text='citationCount:Q').properties(title='Citations')
+    sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
+    text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
 
-# # Build chart
-chart_pt1 = alt.hconcat(
-    bars,
-    text,
-)
+    # # Build chart
+    chart_pt1 = alt.hconcat(
+        bars,
+        text,
+    )
 
-chart = alt.vconcat(
-    chart_pt1,
-    points
-).configure_title(
-    fontSize=20,
-    font='Courier',
-    anchor='start',
-    color='darkorange'
-).configure_legend(
-    labelLimit=0,
-    strokeColor='gray',
-    fillColor='#EEEEEE',
-    padding=10,
-    cornerRadius=10,
-    orient='bottom-left'
-).configure_view(
-    strokeWidth=0
-)
+    chart = alt.vconcat(
+        chart_pt1,
+        points
+    ).configure_title(
+        fontSize=20,
+        font='Courier',
+        anchor='start',
+        color='darkorange'
+    ).configure_legend(
+        labelLimit=0,
+        strokeColor='gray',
+        fillColor='#EEEEEE',
+        padding=10,
+        cornerRadius=10,
+        orient='bottom-left'
+    ).configure_view(
+        strokeWidth=0
+    )
     
     return chart
 
