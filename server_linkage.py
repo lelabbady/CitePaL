@@ -31,6 +31,7 @@ s2_api_key = os.environ['S2KEY']
 app = Flask(__name__)
 CORS(app)
 
+@functools.lru_cache(maxsize=4096)
 def get_references(paper_id):
     ref_url_format = 'https://api.semanticscholar.org/graph/v1/paper/{}/references?limit=200'
     ref_url = ref_url_format.format(paper_id)
@@ -40,6 +41,7 @@ def get_references(paper_id):
     return data
 
 
+@functools.lru_cache(maxsize=4096)
 def get_details(paper_id):
     get_details_format = 'https://api.semanticscholar.org/graph/v1/paper/{}?fields=url,year,authors,venue,embedding,title'
     url = get_details_format.format(paper_id)
@@ -395,6 +397,7 @@ def get_source_df(groups): #groups is a list of group objects
         df['first_author'] = first_author
         df['group'] = [g.title] * df.shape[0]
         df['source_title'] = [None] * df.shape[0]
+        df['ref_title'] = df['title']
         all_df = pd.concat([all_df,df])
 
         #add all the references from this source paper to the dataframe
@@ -418,6 +421,7 @@ def get_ref_graph(user_data_groups = None):
         source_df = merged.copy()
     else:
         source_df = get_source_df(user_data_groups)
+        source_df['value'] = source_df['group']
 
     source_df = source_df.reset_index()
 
