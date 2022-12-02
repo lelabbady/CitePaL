@@ -1,39 +1,56 @@
 <!doctype html>
 <html class="no-js" lang="">
+
     <head>
+        <title>CitePaL</title>
         <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>Citation Grouper</title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-        <!-- Place favicon.ico in the root directory -->
-        <style>
-         details {
-             margin-left: 20px;
-         }
-         form.htmx-request {
-             opacity: .5;
-             transition: opacity 300ms linear;
-         }
-        </style>
-        <script src="https://unpkg.com/htmx.org@1.8.2"></script>
-
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega@5"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-lite@4.17.0"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-embed@6"></script>
-
-    </head>
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="stylesheets/foundation.min.css">
+        <link rel="stylesheet" href="stylesheets/main.css">
+        <link rel="stylesheet" href="stylesheets/app.css">
+        <script src="javascripts/modernizr.foundation.js"></script>
+        <!-- Google fonts -->
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Playfair+Display:400italic' rel='stylesheet' type='text/css' />
+        <!-- IE Fix for HTML5 Tags -->
+        <!--[if lt IE 9]>
+        <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        </head>
     <body>
+        <div class="row page_wrap" style="margin-top:-2px">
+            <!-- page wrap -->
+            <div class="twelve columns">
+              <!-- page wrap -->
+              <div class="row">
+                <div class="twelve columns header_nav" style="margin-bottom:0; box-shadow: none">
+                  <div class="twelve columns">
+                    <ul id="menu-header" class="nav-bar horizontal">
+                      <li class="active"><a href="index.html">Home</a></li>
+                      <li><a href="overview.html">Overview</a></li>
+                      <li><a href="user_study.html">User Study</a></li>
+                      <li><a href="future_directions.html">Future Directions</a></li>
+                    </ul>
+                    <script>$('ul#menu-header').nav-bar();</script>
+                  </div>
+                </div>
+              </div>
 
-        <h1>Citation Grouper</h1>
+        <h1>CitePaL - Demo</h1>
         <p>
-            In this demo, I show a vision for grouping and displaying a group of citations hierarchically.
-            I group papers using hierachical clustering based on the
-            <a href="https://github.com/allenai/specter">SPECTER embeddings</a> provided by Semantic Scholar.
-            Then, to interpret the groups, I use GPT3 to generate a title for each group based on the titles of the groups below it.
-            The group titles are the key aspect of the demo and allow the user to browse an <b>interpretable</b> hieararchy.
+            The idea behind the CitePaL is to provide build a tool that aids researchers 
+            in quickly accessing relevant background and motivation for a given paper. 
+            The main use case is a researcher who encounters a new paper in a line of 
+            research that they are less familiar with. Using our tool, the researcher 
+            would input a single paper, and receive a list of three or four key papers 
+            that the given paper builds on, along with an interactive interface to explore 
+            the corpus of reference papers. 
+
+            Here we have a mock up of what this might look like. At the top you can 
+            enter the semantic scholar URL to any paper of interest. You will then 
+            get a drop down hierarchy of all the paper's references grouped by topic, 
+            along with a suggestion for 3-4 most foundational background papers. 
+            Below you will see a few summary plots that allow you to explore 
+            references from the paper may be most relevant to you. 
         </p>
 
         <p>
@@ -160,8 +177,7 @@
         </div>
 
         <br/>
-        <button onclick="showGraph()">
-            Show the graph!
+        <button onclick="showGraph()" style="text-align:center"><a href="#" class="button large secondary">Show the Graph! &raquo;</a> >
         </button>
 
         <div id="vis"></div>
