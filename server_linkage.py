@@ -22,24 +22,30 @@ import io
 
 import altair as alt
 import pandas as pd
+import hashlib
 
 
-api_key = os.environ['OPENAI_KEY']
-openai.api_key = api_key
+openai.api_key = os.environ['OPENAI_KEY']
+s2_api_key = os.environ['S2KEY']
 
 app = Flask(__name__)
 CORS(app)
 
+@functools.lru_cache(maxsize=4096)
 def get_references(paper_id):
     ref_url_format = 'https://api.semanticscholar.org/graph/v1/paper/{}/references?limit=200'
     ref_url = ref_url_format.format(paper_id)
-    data = json.loads(requests.get(ref_url).text)
+    res = requests.get(ref_url, headers={'x-api-key': s2_api_key})
+    data = json.loads(res.text)
     return data
 
+
+@functools.lru_cache(maxsize=4096)
 def get_details(paper_id):
-    get_details_format = 'https://api.semanticscholar.org/graph/v1/paper/{}?fields=url,year,authors,venue,embedding,title'
+    get_details_format = 'https://api.semanticscholar.org/graph/v1/paper/{}?fields=url,year,authors,citationCount,venue,embedding,title'
     url = get_details_format.format(paper_id)
-    details = json.loads(requests.get(url).text)
+    res = requests.get(url, headers={'x-api-key': s2_api_key})
+    details = json.loads(res.text)
     return details
 
 def get_cse599_data():
@@ -89,6 +95,8 @@ def get_category(titles):
     return text
 
 
+GROUP_CACHE = dict()
+
 class Group():
     def __init__(self, items=None, terminal=False, level=0):
         if items is None:
@@ -124,7 +132,16 @@ class Group():
                 count += 1
         self.count = count
         return count
-        
+
+    def compute_hash(self):
+        items = self.get_all_items()
+        paper_ids = [item['paperId'] for item in items]
+        h = hashlib.sha256()
+        for p in paper_ids:
+            h.update(p.encode('utf8'))
+        self.hash_value = h.hexdigest()[:16]
+        return self.hash_value
+
     def get_all_items(self):
         all_items = []
         q = LifoQueue()
@@ -191,12 +208,20 @@ class Group():
 
     def break_to_size(self, size=6, min_items=6):
         while len(self.items) < size:
-            ix = np.argmax([x.count for x in self.items])
+            ix = np.argmax([x.count if isinstance(x, Group) else 1
+                            for x in self.items])
             obj = self.items[ix]
             if obj.count <= min_items:
                 break
             self.items.remove(obj)
             self.items.extend(obj.items)
+
+    def add_to_cache(self):
+        h = self.compute_hash()
+        GROUP_CACHE[h] = self
+        for item in self.items:
+            if isinstance(item, Group):
+                item.add_to_cache()
 
 
 def format_authors(authors):
@@ -225,8 +250,14 @@ def render_hierarchy(root):
     items = []
     for g in root.get_groups():
         html = render_hierarchy(g)
-        item = "<details>\n<summary>{}</summary>\n{}</details>".format(
-            g.title, html)
+        item = """<details>
+        <summary>
+        <input type='checkbox' name='ids' value='{}'>
+        {}
+        </summary>
+        {}
+        </details>""".format(
+            g.hash_value, g.title, html)
         items.append(item)
     items.append(render_list(root.get_items()))
 
@@ -236,8 +267,7 @@ def process_data(data):
     #Linkage Matrix
     vecs = np.array([r['embedding']['vector'] for r in data])
     # pcs = PCA(n_components=5).fit_transform(vecs)
-    Z = linkage(vecs, method = 'weighted',
-                metric='cosine',
+    Z = linkage(vecs, method = 'ward', metric='euclidean',
                 optimal_ordering=True)
 
     nodes = [Group([r], terminal=True) for r in data]
@@ -249,6 +279,7 @@ def process_data(data):
         nodes.append(new_group)
 
     root = nodes[-1]
+    root.recount()
 
     q = Queue()
     q.put(root)
@@ -262,8 +293,7 @@ def process_data(data):
                 if isinstance(item, Group):
                     q.put(item)
 
-
-    # root = build_hierarchy(data)
+    root.recount()
 
     n_max = sum([x.has_subtitles() for x in root.get_all_groups()])
     pool = ThreadPool(processes=n_max)
@@ -275,13 +305,19 @@ def process_data(data):
         if len(possible) == 0: break
         pool.map(Group.fetch_title, possible)
 
+    root.add_to_cache()
+
     return root
+
+def wrap_form(html):
+    return '<form id="checked-groups">' + html + '</form>'
 
 @app.route('/cse599d')
 def render_cse599():
     data = get_cse599_data()
     root = process_data(data)
     html = render_hierarchy(root)
+    html = wrap_form(html)
     pre = '<div>Papers from CSE 599D: The Future of Scholarly Communication</div>'
     return pre + html
 
@@ -292,25 +328,101 @@ def render_paper():
     data = fetch_paper_data(paper_id)
     root = process_data(data)
     html = render_hierarchy(root)
+    html = wrap_form(html)
     paper_details = get_details(paper_id)
     pre = '<div>Grouping references of paper {}</div>'.format(format_paper(paper_details))
     return pre + html
 
-@app.route("/refgraph.json")
-def influential_refs():
-    chart = get_ref_graph()
+# @app.route("/refgraph.json")
+# def influential_refs():
+#     chart = get_ref_graph()
+#     out = io.StringIO()
+#     chart.save(out, format='json')
+#     return out.getvalue()
+
+@app.route("/postgraph", methods=["POST"])
+def influential_refs_post():
+    values = request.get_json()['ids']
+    groups = [GROUP_CACHE[v] for v in values if v in GROUP_CACHE]
+    chart = get_ref_graph(groups)
     out = io.StringIO()
     chart.save(out, format='json')
     return out.getvalue()
 
-def get_ref_graph():
-    merged_df = pd.read_pickle('data/reference_df_with_tags.pkl')
-    merged_edges = merged_df.groupby(['ref_title', 'class_paper']).size().reset_index(name='count')
+def get_group_df(group):
+    items = group.get_all_items()
+    papers = [i for i in items if i['paperId'] is not None]
+    df = pd.DataFrame(papers)
+    return df
 
-    merged = merged_df.query('citationCount != 0')
-    merged = merged_df[~merged_df.year.isna()]
+def get_ref_df(source_df, group):
 
-    source_df = merged.copy()
+    for jx, j in source_df.iterrows():
+        pool = ThreadPool(processes=20)
+        p = j.paperId
+        source_title = j.title
+        ref_titles = get_references(p)['data']
+
+        ref_ids = [i['citedPaper']['paperId'] for i in ref_titles]
+        ref_ids = [x for x in ref_ids if x is not None]
+        ref_data = pool.map(get_details,ref_ids)
+        ref_papers = [i for i in ref_data if type(i) == dict]
+        ref_df = pd.DataFrame(ref_papers)
+
+        if ref_df.shape[0] > 0:
+            first_author = []
+            for i in ref_df.authors:
+                #print(i)
+                if type(i) != float and len(i)>0:
+                    first_author.append(i[0]['name'])
+                else:
+                    first_author.append('NA')
+            ref_df['first_author'] = first_author
+            ref_df['group'] = [group.title] * ref_df.shape[0]
+            ref_df['source_title'] = source_title
+
+    return ref_df
+
+def get_source_df(groups): #groups is a list of group objects
+    all_df = pd.DataFrame()
+    for g in groups: #loop through all the selected papers as 'source papers'
+        df = get_group_df(g)
+
+        first_author = []
+        for i in df.authors:
+            first_author.append(i[0]['name'])
+
+        df['first_author'] = first_author
+        df['group'] = [g.title] * df.shape[0]
+        df['source_title'] = [None] * df.shape[0]
+        df['ref_title'] = df['title']
+        all_df = pd.concat([all_df,df])
+
+        #add all the references from this source paper to the dataframe
+        ref_df = get_ref_df(df,g)
+        all_df = pd.concat([all_df,ref_df])
+
+    shared_dict = dict(all_df.title.value_counts())
+    all_df['shared_by'] = [shared_dict[i] for i in all_df.title]
+
+    return all_df
+
+
+def get_ref_graph(user_data_groups = None):
+    if user_data_groups == None:
+        merged_df = pd.read_pickle('data/reference_df_with_tags.pkl')
+        merged_edges = merged_df.groupby(['ref_title', 'class_paper']).size().reset_index(name='count')
+
+        merged = merged_df.query('citationCount != 0')
+        merged = merged_df[~merged_df.year.isna()]
+
+        source_df = merged.copy()
+    else:
+        source_df = get_source_df(user_data_groups)
+        source_df = source_df[~source_df['citationCount'].isna()]
+        source_df = source_df.query('citationCount != 0')
+        source_df['value'] = source_df['group']
+
     source_df = source_df.reset_index()
 
     source_bar = source_df.copy().iloc[:,-4:].drop_duplicates()
@@ -334,12 +446,12 @@ def get_ref_graph():
             title='Citation Count',
             scale=alt.Scale(type="log")
         ),
-        alt.Color('shared_by:Q',scale=alt.Scale(scheme='goldorange'), title = 'Cross Reference Count'),
+        alt.Color('shared_by:Q',scale=alt.Scale(scheme='goldorange'),  legend=alt.Legend(title = 'Shared References')),
         tooltip=['ref_title','first_author', 'year'],
         #color=alt.condition(brush, color, alt.value('lightgray')),
-        size=alt.Size('shared_by:Q')
+        # size=alt.Size('shared_by:Q')
     ).properties(
-        width=700,
+        width=1200,
         height=550
     ).transform_filter(
         pts
@@ -347,7 +459,7 @@ def get_ref_graph():
 
     scale = alt.Scale(domain=['theory', 'tools'],
                       range=['#249EA0', '#005F60'])
-    color = alt.Color('modes:N', scale=scale)
+    color = alt.Color('modes:N', scale=scale, legend=None)
 
     bars = alt.Chart(source.dropna()).transform_filter(
         alt.FieldEqualPredicate(field='is_valid', equal=True)
@@ -356,12 +468,12 @@ def get_ref_graph():
         x='count()',
         color=alt.condition(pts, color, alt.value('gray'))
     ).properties(
-        width=700
+        width=400
     ).add_selection(pts)
 
     # Base chart for data tables
     ranked_text = alt.Chart(source).mark_text().encode(
-        y=alt.Y('row_number:O',axis=None, sort=alt.EncodingSortField('shared_by:Q', order = 'descending'))
+        y=alt.Y('row_number:O',axis=None)
     ).transform_window(
         row_number='row_number()'
     ).transform_filter(
@@ -369,22 +481,43 @@ def get_ref_graph():
     ).transform_window(
         rank='rank(row_number)'
     ).transform_filter(
-        alt.datum.rank<5
+        alt.datum.rank<7
+    ).properties(
+        width = 10
     )
 
-    # Data Table
+    # Data Tables
     year = ranked_text.encode(text='year:N').properties(title='Year')
-    title = ranked_text.encode(text='ref_title').properties(title='title')
+    title = ranked_text.encode(text='ref_title').properties(title='Paper Title')
     cites = ranked_text.encode(text='citationCount:Q').properties(title='Citations')
     sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
     text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
 
-    chart = alt.vconcat(
+    # # Build chart
+    chart_pt1 = alt.hconcat(
         bars,
-        points,
         text,
-        title="Which Papers Are Most Referenced Across Disciplines?"
     )
+
+    chart = alt.vconcat(
+        chart_pt1,
+        points
+    ).configure_title(
+        fontSize=20,
+        font='Courier',
+        anchor='start',
+        color='darkorange'
+    ).configure_legend(
+        labelLimit=0,
+        strokeColor='gray',
+        fillColor='#EEEEEE',
+        padding=10,
+        cornerRadius=10,
+        orient='bottom-left'
+    ).configure_view(
+        strokeWidth=0
+    )
+    
     return chart
 
 
@@ -393,4 +526,4 @@ def hello():
     return "Hello from CitePal server"
 
 if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port=7500)
+    app.run(debug=False, host='0.0.0.0', port=7500, threaded=True)
