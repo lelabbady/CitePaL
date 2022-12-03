@@ -451,8 +451,8 @@ def get_ref_graph(user_data_groups = None):
         #color=alt.condition(brush, color, alt.value('lightgray')),
         # size=alt.Size('shared_by:Q')
     ).properties(
-        width=1200,
-        height=550
+        width=700,
+        height=450
     ).transform_filter(
         pts
     )
@@ -468,7 +468,7 @@ def get_ref_graph(user_data_groups = None):
         x='count()',
         color=alt.condition(pts, color, alt.value('gray'))
     ).properties(
-        width=400
+        width=200
     ).add_selection(pts)
 
     # Base chart for data tables
