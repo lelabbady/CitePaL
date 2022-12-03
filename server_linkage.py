@@ -14,6 +14,7 @@ import functools
 from flask import Flask
 from flask import request
 from flask_cors import CORS
+from flask_compress import Compress
 
 import openai
 
@@ -30,6 +31,7 @@ s2_api_key = os.environ['S2KEY']
 
 app = Flask(__name__)
 CORS(app)
+Compress(app)
 
 @functools.lru_cache(maxsize=4096)
 def get_references(paper_id):
@@ -64,7 +66,7 @@ def fetch_paper_data(paper_id):
 
     # paper_id = data['data'][0]['citedPaper']['paperId']
     paper_ids = [r['citedPaper']['paperId'] for r in refs]
-    pool = ThreadPool(processes=20)
+    pool = ThreadPool(processes=50)
     data = pool.map(get_details, paper_ids)
     data = [r for r in data if 'embedding' in r]
     return data
@@ -81,10 +83,10 @@ def get_category(titles):
     # However, having read them, I would file them under the better folder of "
     # """
     # prompt += '''\n\nA short but extremely descriptive category for these papers would be "'''
-    prompt += '''\n\nA review paper summarizing and synthesizing all of the above papers would have the descriptive title of "'''
+    prompt += '''\n\nA review paper summarizing and synthesizing all of the above papers would have the short but descriptive title of "'''
     # prompt += '''\n\n\nA review paper synthesizing and summarizing the above papers would be titled "'''
     complete = openai.Completion.create(
-      model="text-davinci-002",
+      model="text-davinci-003",
       prompt=prompt,
       max_tokens=30,
       temperature=0.0
@@ -356,9 +358,9 @@ def get_group_df(group):
     return df
 
 def get_ref_df(source_df, group):
-
+    all_df = []
     for jx, j in source_df.iterrows():
-        pool = ThreadPool(processes=20)
+        pool = ThreadPool(processes=60)
         p = j.paperId
         source_title = j.title
         ref_titles = get_references(p)['data']
@@ -380,8 +382,9 @@ def get_ref_df(source_df, group):
             ref_df['first_author'] = first_author
             ref_df['group'] = [group.title] * ref_df.shape[0]
             ref_df['source_title'] = source_title
+        all_df.append(ref_df)
 
-    return ref_df
+    return pd.concat(all_df)
 
 def get_source_df(groups): #groups is a list of group objects
     all_df = pd.DataFrame()
@@ -395,16 +398,17 @@ def get_source_df(groups): #groups is a list of group objects
         df['first_author'] = first_author
         df['group'] = [g.title] * df.shape[0]
         df['source_title'] = [None] * df.shape[0]
-        df['ref_title'] = df['title']
+        # df['ref_title'] = df['title']
         all_df = pd.concat([all_df,df])
 
         #add all the references from this source paper to the dataframe
         ref_df = get_ref_df(df,g)
         all_df = pd.concat([all_df,ref_df])
 
+    all_df = all_df[~all_df['title'].isna()]
+
     shared_dict = dict(all_df.title.value_counts())
     all_df['shared_by'] = [shared_dict[i] for i in all_df.title]
-
     return all_df
 
 
@@ -446,10 +450,11 @@ def get_ref_graph(user_data_groups = None):
             title='Citation Count',
             scale=alt.Scale(type="log")
         ),
-        alt.Color('shared_by:Q',scale=alt.Scale(scheme='goldorange'),  legend=alt.Legend(title = 'Shared References')),
-        tooltip=['ref_title','first_author', 'year'],
-        #color=alt.condition(brush, color, alt.value('lightgray')),
-        # size=alt.Size('shared_by:Q')
+        alt.Color('shared_by:Q',scale=alt.Scale(scheme='goldorange', domainMin=0),
+                  legend=alt.Legend(title = 'Shared References')),
+        tooltip=['title','first_author', 'year'],
+        # color=alt.condition(brush, color, alt.value('lightgray')),
+        size=alt.Size('shared_by:Q')
     ).properties(
         width=700,
         height=450
@@ -472,7 +477,8 @@ def get_ref_graph(user_data_groups = None):
     ).add_selection(pts)
 
     # Base chart for data tables
-    ranked_text = alt.Chart(source).mark_text().encode(
+    source_text = source.drop_duplicates('title', keep="first").sort_values('shared_by', ascending=False)
+    ranked_text = alt.Chart(source_text).mark_text().encode(
         y=alt.Y('row_number:O',axis=None)
     ).transform_window(
         row_number='row_number()'
@@ -488,19 +494,19 @@ def get_ref_graph(user_data_groups = None):
 
     # Data Tables
     year = ranked_text.encode(text='year:N').properties(title='Year')
-    title = ranked_text.encode(text='ref_title').properties(title='Paper Title')
+    title = ranked_text.encode(text='title').properties(title='Paper Title')
     cites = ranked_text.encode(text='citationCount:Q').properties(title='Citations')
     sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
     text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
 
-    # # Build chart
-    chart_pt1 = alt.hconcat(
-        bars,
-        text,
-    )
+    # # # Build chart
+    # chart_pt1 = alt.hconcat(
+    #     bars,
+    #     text,
+    # )
 
     chart = alt.vconcat(
-        chart_pt1,
+        text,
         points
     ).configure_title(
         fontSize=20,
