@@ -499,14 +499,14 @@ def get_ref_graph(user_data_groups = None):
     sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
     text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
 
-    # # Build chart
-    chart_pt1 = alt.hconcat(
-        bars,
-        text,
-    )
+    # # # Build chart
+    # chart_pt1 = alt.hconcat(
+    #     bars,
+    #     text,
+    # )
 
     chart = alt.vconcat(
-        chart_pt1,
+        text,
         points
     ).configure_title(
         fontSize=20,
