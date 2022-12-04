@@ -37,18 +37,18 @@
 
         <h1>CitePal - Overview</h1>
         <p>
-            We built a tool to help researchers find foundational papers for a given keyword, or set of keywords.
+            We built a tool to help researchers find foundational papers for a given keyword or set of keywords.
 
             The original dataset included a list of papers with their semantic scholar metadata.
             We will refer to this initial set of 65 papers as source papers. The semantic scholar 
             metadata includes all of the references for each of these source papers. These were 
             all aggregated into a reference paper dataset. With these two sets of papers, 
             the question we sought out to ask was - **can we create a visualization to aid 
-            researchers to quickly find important papers within a given research interest?  
+            researchers quickly find important papers within a given research interest?  
 
             "Important" here is measured by both number of citations as well as the number 
-            of source papers that have referenced the same reference paper.In this demo, 
-            we show a vision for grouping and displaying a group of citations hierarchically.
+            of source papers that have referenced the same reference paper. In this demo, 
+            we aim to visualize grouping and displaying a group of citations hierarchically.
             
             I group papers using hierachical clustering based on the
             <a href="https://github.com/allenai/specter">SPECTER embeddings</a> provided by Semantic Scholar.

@@ -59,7 +59,7 @@
 
         <h1>CitePaL - Demo</h1>
         <p>
-            The idea behind the CitePaL is to provide build a tool that aids researchers 
+            The idea behind the CitePaL is to build a tool that aids researchers 
             in quickly accessing relevant background and motivation for a given paper. 
             The main use case is a researcher who encounters a new paper in a line of 
             research that they are less familiar with. Using our tool, the researcher 
@@ -70,14 +70,14 @@
             Here we have a mock up of what this might look like. At the top you can 
             enter the semantic scholar URL to any paper of interest. You will then 
             get a drop down hierarchy of all the paper's references grouped by topic, 
-            along with a suggestion for 3-4 most foundational background papers. 
-            Below you will see a few summary plots that allow you to explore 
+            along with a suggestion for 3-4 predicted foundational background papers. 
+            Below you will see a few summary plots that allow you to explore which 
             references from the paper may be most relevant to you. 
         </p>
 
         <p>
-            The papers to be grouped can be either the CSE599D papers (by default), or they can be the references of an article.
-            This works particularly well for browsing references in a review article.
+            The paper groups can be either the CSE599D papers (by default), or the references of a user-chosen article.
+            This tool works particularly well for browsing references in a review article.
         </p>
 
 
@@ -88,7 +88,7 @@
         </form>
 
         <button hx-target="#toswap" hx-get="http://localhost:7500/cse599d">
-            Show me CSE599D papers
+            Show me CSE599D papers (Example)
         </button>
 
         <br/> <br/>
