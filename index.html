@@ -123,6 +123,9 @@
                  el.innerHTML = "Please select at least one group!";
                  return;
              }
+             const el = document.getElementById('vis');
+             el.innerHTML = 'Loading graph...';
+
              fetch("http://localhost:7500/postgraph", {
                  method: 'POST',
                  headers: {
