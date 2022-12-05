@@ -441,7 +441,7 @@ def get_ref_graph(user_data_groups = None):
     source = source_df[:5000].sort_values('shared_by')
     year_ticks = [int(i) for i in np.arange(1880,2030,10)]
 
-    pts = alt.selection(type="multi", encodings=['y','color'])
+    # pts = alt.selection(type="multi", encodings=['y','color'])
     # Top panel is scatter plot of temperature vs time
     points = alt.Chart(source).mark_point().encode(
         alt.X('year:N', title='Year',
@@ -458,9 +458,10 @@ def get_ref_graph(user_data_groups = None):
     ).properties(
         width=700,
         height=450
-    ).transform_filter(
-        pts
     )
+    # .transform_filter(
+    #     pts
+    # )
 
     scale = alt.Scale(domain=['theory', 'tools'],
                       range=['#249EA0', '#005F60'])
