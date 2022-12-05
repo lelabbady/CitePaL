@@ -59,20 +59,12 @@
 
         <h1>Welcome to CitePaL</h1>
         <h6>Ellen Lesser, Pierre Karashchuk, and Leila Elabbady</h6>
-
-        <h4>What to Expect - </h4>     
+  
         <p>
             Here we have a mock up of our tool. If you would like to read more about the 
             motivation, user study or future directions, please check out the tabs above! 
-            At the top you can 
-            enter the semantic scholar URL to any paper of interest. You will then 
-            get a drop down hierarchy of all the paper's references grouped by topic, 
-            along with a suggestion for 3-4 predicted foundational background papers. 
-            Below you will see a few summary plots that allow you to explore which 
-            references from the paper may be most relevant to you. 
         </p>
 
-        <h3>How to Use:</h3>
         <h4>Enter any Semantic Scholar URL in the box below</h4>
 
         <form hx-target="#toswap" hx-get="http://localhost:7500/getpaper">
@@ -81,16 +73,15 @@
             <button>Submit</button>
         </form>
 
-        <h4>What to Expect - </h4> 
         <p>Once you click submit for your paper of interest, you will see a  
            drop down hierarchy of all the paper's references grouped by topic. 
            You can click on the arrows to see the individual papers. 
         </p>
 
-        <p>To get a few recommendations and visually explore the references, 
-            select your topics of interest by selecting the checkboxes in the 
-            hierarchy. Then click, the show graph button. 
-            (This will take a few seconds) 
+        <p>To get a few recommendations and visually explore which 
+            references may be most relevant to you, select your topics 
+            of interest by selecting the checkboxes in the hierarchy. 
+            Then click, the show graph button. (This will take a few seconds) 
          </p>
 
         <h4>Want to see an example? Click the button below to explore the class
@@ -106,7 +97,7 @@
         </div>
 
         <br/>
-        <h4>Ready to explore? Click the button below!
+        <h4>For visual exploration and recommendations, click the button below! 
         </h4>
         <button onclick="showGraph()">
             Show the graph!
