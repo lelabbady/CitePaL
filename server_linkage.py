@@ -466,38 +466,38 @@ def get_ref_graph(user_data_groups = None):
                       range=['#249EA0', '#005F60'])
     color = alt.Color('modes:N', scale=scale, legend=None)
 
-    bars = alt.Chart(source.dropna()).transform_filter(
-        alt.FieldEqualPredicate(field='is_valid', equal=True)
-    ).mark_bar().encode(
-        y='value',
-        x='count()',
-        color=alt.condition(pts, color, alt.value('gray'))
-    ).properties(
-        width=200
-    ).add_selection(pts)
+    # bars = alt.Chart(source.dropna()).transform_filter(
+    #     alt.FieldEqualPredicate(field='is_valid', equal=True)
+    # ).mark_bar().encode(
+    #     y='value',
+    #     x='count()',
+    #     color=alt.condition(pts, color, alt.value('gray'))
+    # ).properties(
+    #     width=200
+    # ).add_selection(pts)
 
     # Base chart for data tables
-    source_text = source.drop_duplicates('title', keep="first").sort_values('shared_by', ascending=False)
-    ranked_text = alt.Chart(source_text).mark_text().encode(
-        y=alt.Y('row_number:O',axis=None)
-    ).transform_window(
-        row_number='row_number()'
-    ).transform_filter(
-        pts
-    ).transform_window(
-        rank='rank(row_number)'
-    ).transform_filter(
-        alt.datum.rank<7
-    ).properties(
-        width = 10
-    )
+    # source_text = source.drop_duplicates('title', keep="first").sort_values('shared_by', ascending=False)
+    # ranked_text = alt.Chart(source_text).mark_text().encode(
+    #     y=alt.Y('row_number:O',axis=None)
+    # ).transform_window(
+    #     row_number='row_number()'
+    # ).transform_filter(
+    #     pts
+    # ).transform_window(
+    #     rank='rank(row_number)'
+    # ).transform_filter(
+    #     alt.datum.rank<7
+    # ).properties(
+    #     width = 10
+    # )
 
     # Data Tables
-    year = ranked_text.encode(text='year:N').properties(title='Year')
-    title = ranked_text.encode(text='title').properties(title='Paper Title')
-    cites = ranked_text.encode(text='citationCount:Q').properties(title='Citations')
-    sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
-    text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
+    # year = ranked_text.encode(text='year:N').properties(title='Year')
+    # title = ranked_text.encode(text='title').properties(title='Paper Title')
+    # cites = ranked_text.encode(text='citationCount:Q').properties(title='Citations')
+    # sharedby = ranked_text.encode(text='shared_by:Q').properties(title='Shared')
+    # text = alt.hconcat(title,sharedby,cites,year) # Combine data tables
 
     # # # Build chart
     # chart_pt1 = alt.hconcat(
@@ -505,26 +505,26 @@ def get_ref_graph(user_data_groups = None):
     #     text,
     # )
 
-    chart = alt.vconcat(
-        text,
-        points
-    ).configure_title(
-        fontSize=20,
-        font='Courier',
-        anchor='start',
-        color='darkorange'
-    ).configure_legend(
-        labelLimit=0,
-        strokeColor='gray',
-        fillColor='#EEEEEE',
-        padding=10,
-        cornerRadius=10,
-        orient='bottom-left'
-    ).configure_view(
-        strokeWidth=0
-    )
+    # chart = alt.vconcat(
+    #     text,
+    #     points
+    # ).configure_title(
+    #     fontSize=20,
+    #     font='Courier',
+    #     anchor='start',
+    #     color='darkorange'
+    # ).configure_legend(
+    #     labelLimit=0,
+    #     strokeColor='gray',
+    #     fillColor='#EEEEEE',
+    #     padding=10,
+    #     cornerRadius=10,
+    #     orient='bottom-left'
+    # ).configure_view(
+    #     strokeWidth=0
+    # )
     
-    return chart
+    return points
 
 
 @app.route('/')
