@@ -119,12 +119,12 @@
                  }
              }
              if(values.ids === undefined || values.ids.length == 0) {
-                 var el = document.getElementById("vis");
-                 el.innerHTML = "Please select at least one group!";
+                 const elx = document.getElementById("vis");
+                 elx.innerHTML = "Please select at least one group!";
                  return;
              }
-             const el = document.getElementById('vis');
-             el.innerHTML = 'Loading graph...';
+             const elt = document.getElementById('vis');
+             elt.innerHTML = '<p>Loading graph...</p>';
 
              fetch("http://localhost:7500/postgraph", {
                  method: 'POST',
