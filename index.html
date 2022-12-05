@@ -58,19 +58,13 @@
               </div>
 
         <h1>Welcome to CitePaL</h1>
-        <h3>Ellen Lesser, Pierre Karashchuk, and Leila Elabbady</h3>
+        <h6>Ellen Lesser, Pierre Karashchuk, and Leila Elabbady</h6>
 
-        <h4>The Idea:</h4>
+        <h4>What to Expect - </h4>     
         <p>
-            The idea behind the CitePaL is to build a tool that aids researchers 
-            in quickly accessing relevant background and motivation for a given paper. 
-            The main use case is a researcher who encounters a new paper in a line of 
-            research that they are less familiar with. Using our tool, the researcher 
-            would input a single paper, and receive a list of three or four key papers 
-            that the given paper builds on, along with an interactive interface to explore 
-            the corpus of reference papers. 
-            
-            Here we have a mock up of what this might look like. At the top you can 
+            Here we have a mock up of our tool. If you would like to read more about the 
+            motivation, user study or future directions, please check out the tabs above! 
+            At the top you can 
             enter the semantic scholar URL to any paper of interest. You will then 
             get a drop down hierarchy of all the paper's references grouped by topic, 
             along with a suggestion for 3-4 predicted foundational background papers. 
@@ -78,14 +72,8 @@
             references from the paper may be most relevant to you. 
         </p>
 
-        <h4>Related Work:</h4>
-        <p>
-            The paper groups can be either the CSE599D papers (by default), or the references of a user-chosen article.
-            This tool works particularly well for browsing references in a review article.
-        </p>
-
-        <h4>Related Work:</h4>
-
+        <h3>How to Use:</h3>
+        <h4>Enter any Semantic Scholar URL in the box below</h4>
 
         <form hx-target="#toswap" hx-get="http://localhost:7500/getpaper">
             <label>Semantic Scholar URL</label>
@@ -93,6 +81,21 @@
             <button>Submit</button>
         </form>
 
+        <h4>What to Expect - </h4> 
+        <p>Once you click submit for your paper of interest, you will see a  
+           drop down hierarchy of all the paper's references grouped by topic. 
+           You can click on the arrows to see the individual papers. 
+        </p>
+
+        <p>To get a few recommendations and visually explore the references, 
+            select your topics of interest by selecting the checkboxes in the 
+            hierarchy. Then click, the show graph button. 
+            (This will take a few seconds) 
+         </p>
+
+        <h4>Want to see an example? Click the button below to explore the class
+            papers from CSE599.
+        </h4>
         <button hx-target="#toswap" hx-get="http://localhost:7500/cse599d">
             Show me CSE599D papers (Example)
         </button>
@@ -103,6 +106,8 @@
         </div>
 
         <br/>
+        <h4>Ready to explore? Click the button below!
+        </h4>
         <button onclick="showGraph()">
             Show the graph!
         </button>
