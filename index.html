@@ -106,6 +106,7 @@
         <br/>
 
 
+        <div id="top"></div>
 
         <div id="vis"></div>
 
@@ -128,6 +129,9 @@
              const elt = document.getElementById('vis');
              elt.innerHTML = '<p>Loading graph...</p>';
 
+             const elp = document.getElementById('top');
+             elp.innerHTML = '<p>Loading papers...</p>';
+
              fetch("http://localhost:7500/postgraph", {
                  method: 'POST',
                  headers: {
@@ -136,6 +140,10 @@
                  body: JSON.stringify(values)
              }).then((response) => response.json())
                .then(function (spec) {
+
+                   const topEl = document.getElementById("top");
+                   topEl.innerHTML = spec['papers'];
+
                    var embedOpt = {"mode": "vega-lite"};
 
                    function showError(el, error){

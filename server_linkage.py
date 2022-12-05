@@ -236,8 +236,8 @@ def format_authors(authors):
         return "{} et al".format(authors[0]['name'])
 
 def format_paper(row):
-    return '<a href="{url}">{author_text}. ({year}) {title}. <i>{venue}</i></a>'.format(
-        author_text=format_authors(row['authors']), **row)
+    return '<a href="{url}">{author_text}. ({year_int}) {title}. <i>{venue}</i></a>'.format(
+        author_text=format_authors(row['authors']), year_int=int(row['year']), **row)
 
 def render_list(rows):
     if len(rows) == 0:
@@ -342,14 +342,24 @@ def render_paper():
 #     chart.save(out, format='json')
 #     return out.getvalue()
 
+def get_top_papers_html(textdf, topn=10):
+    subdf = textdf.iloc[:topn]
+    rows = [subdf.iloc[i].to_dict() for i in range(len(subdf))]
+    return render_list(rows)
+
+
 @app.route("/postgraph", methods=["POST"])
 def influential_refs_post():
     values = request.get_json()['ids']
     groups = [GROUP_CACHE[v] for v in values if v in GROUP_CACHE]
-    chart = get_ref_graph(groups)
+    chart, textdf = get_ref_graph(groups)
+    top_html = get_top_papers_html(textdf)
     out = io.StringIO()
     chart.save(out, format='json')
-    return out.getvalue()
+    dd = json.loads(out.getvalue())
+    dd['papers'] = top_html
+    # final = out.getvalue()[:-1] + ', "papers": "' + top_html + '"}'
+    return json.dumps(dd)
 
 def get_group_df(group):
     items = group.get_all_items()
@@ -363,7 +373,10 @@ def get_ref_df(source_df, group):
         pool = ThreadPool(processes=60)
         p = j.paperId
         source_title = j.title
-        ref_titles = get_references(p)['data']
+        try:
+            ref_titles = get_references(p)['data']
+        except KeyError:
+            continue
 
         ref_ids = [i['citedPaper']['paperId'] for i in ref_titles]
         ref_ids = [x for x in ref_ids if x is not None]
@@ -478,7 +491,7 @@ def get_ref_graph(user_data_groups = None):
     # ).add_selection(pts)
 
     # Base chart for data tables
-    # source_text = source.drop_duplicates('title', keep="first").sort_values('shared_by', ascending=False)
+    source_text = source.drop_duplicates('title', keep="first").sort_values('shared_by', ascending=False)
     # ranked_text = alt.Chart(source_text).mark_text().encode(
     #     y=alt.Y('row_number:O',axis=None)
     # ).transform_window(
@@ -525,7 +538,7 @@ def get_ref_graph(user_data_groups = None):
     #     strokeWidth=0
     # )
     
-    return points
+    return points, source_text
 
 
 @app.route('/')
