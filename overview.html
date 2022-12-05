@@ -36,7 +36,7 @@
               </div>
 
         <h1>CitePal - Overview</h1>
-        <h4>The Idea:</h4>
+        <h4>Motivation:</h4>
         <p>
             The idea behind the CitePaL is to provide build a tool that aids researchers 
             in quickly accessing relevant background and motivation for a given paper. 
@@ -46,39 +46,45 @@
             that the given paper builds on, along with an interactive interface to explore 
             the corpus of reference papers. 
             
-            Here we have a mock up of what this might look like. At the top you can 
-            enter the semantic scholar URL to any paper of interest. You will then 
-            get a drop down hierarchy of all the paper's references grouped by topic, 
-            along with a suggestion for 3-4 most foundational background papers. 
-            Below you will see a few summary plots that allow you to explore 
-            references from the paper may be most relevant to you. 
         </p>
 
-        <h4>Related Work:</h4>
+        <h4>Current Methods:</h4>
         <p>
-            The papers to be grouped can be either the CSE599D papers (by default), or they can be the references of an article.
-            This works particularly well for browsing references in a review article.
+            To date, most researcher will......
         </p>
 
-        <h4>Related Work:</h4>
+        <h4>Approach:</h4>
         <p>
-            We built a tool to help researchers find foundational papers for a given keyword or set of keywords.
+            
+            We built a tool that ...... 
 
-            The original dataset included a list of papers with their semantic scholar metadata.
-            We will refer to this initial set of 65 papers as source papers. The semantic scholar 
-            metadata includes all of the references for each of these source papers. These were 
-            all aggregated into a reference paper dataset. With these two sets of papers, 
-            the question we sought out to ask was - **can we create a visualization to aid 
-            researchers quickly find important papers within a given research interest?  
 
             "Important" here is measured by both number of citations as well as the number 
             of source papers that have referenced the same reference paper. In this demo, 
             we aim to visualize grouping and displaying a group of citations hierarchically.
             
-            I group papers using hierachical clustering based on the
+        </p>
+        <h5>Reference Hierarchy:</h5>
+        <p> Information on the reference hierarchy. I group papers using hierachical clustering based on the
             <a href="https://github.com/allenai/specter">SPECTER embeddings</a> provided by Semantic Scholar.
             Then, to interpret the groups, I use GPT3 to generate a title for each group based on the titles of the groups below it.
             The group titles are the key aspect of the demo and allow the user to browse an <b>interpretable</b> hieararchy.
+
+        </p>
+
+
+        <h5>Visual Exploration:</h5>
+        <p> Information on the reference scatter plot 
+        </p>
+
+
+        <h5>Recommended Papers:</h5>
+        <p> Information on the recommended list 
+        </p>
+
+
+        <h5>Example Dataset:</h5>
+        <p> Information on the default set 
         </p>
 
 
