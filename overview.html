@@ -41,10 +41,7 @@
             The idea behind the CitePaL is to provide build a tool that aids researchers 
             in quickly accessing relevant background and motivation for a given paper. 
             The main use case is a researcher who encounters a new paper in a line of 
-            research that they are less familiar with. Using our tool, the researcher 
-            would input a single paper, and receive a list of three or four key papers 
-            that the given paper builds on, along with an interactive interface to explore 
-            the corpus of reference papers. 
+            research that they are less familiar with. 
             
         </p>
 
@@ -56,14 +53,17 @@
         <h4>Approach:</h4>
         <p>
             
-            We built a tool that ...... 
-
-
-            "Important" here is measured by both number of citations as well as the number 
-            of source papers that have referenced the same reference paper. In this demo, 
-            we aim to visualize grouping and displaying a group of citations hierarchically.
+            We built a tool that aids researchers in finding background papers when reading
+            unfamiliar content. Using our tool, a researcher inputs the url of a single 
+            paper, and receives a list of three or four key papers that the given paper
+            builds on, along with an interactive interface to explore 
+            the corpus of reference papers. The interactive interface consists of two 
+            components; a paper hierarcy and a scatter plot. Using this tool, users 
+            can explore the corpus of reference papers, examine the main topics related to
+            these references, and navigate to the recommended 'foundational' papers.
             
         </p>
+
         <h5>Reference Hierarchy:</h5>
         <p> Information on the reference hierarchy. I group papers using hierachical clustering based on the
             <a href="https://github.com/allenai/specter">SPECTER embeddings</a> provided by Semantic Scholar.
@@ -74,7 +74,21 @@
 
 
         <h5>Visual Exploration:</h5>
-        <p> Information on the reference scatter plot 
+        <p> To facilitate the visual exploration of referenced papers, we used Altair to
+            createa an interactive scatter plot. Each point represents a single paper and 
+            the corpus of papers is made of two levels of references; the  references
+            of the selected paper, and the references of those papers. This allows users 
+            to explore a wider range of papers that may be relevant. Relevance of any paper
+            is represented by three metrics, the date it was published (x axis), the citation 
+            count from Semantic Scholar (y axis), and the number of cross references 
+            (color and size). Cross references refers to how many papers in the selected 
+            corpus (all the paper shown in the plot), cite a given paper. So if the cross
+            reference count for a given paper is five, that means that five papers within 
+            the corpus cite that paper. 
+
+            The selection of papers is set but the user based on the checked boxes in the 
+            paper hierarchy above. Finally we've incorporated a tooltip so that users can 
+            hover over any point to see the title, first author and year of publication.
         </p>
 
 
