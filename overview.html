@@ -36,7 +36,7 @@
               </div>
 
         <h1>CitePal - Overview</h1>
-        <h4>Motivation:</h4>
+        <h4>Motivation</h4>
         <p>
             The idea behind the CitePaL is to provide build a tool that aids researchers 
             in quickly accessing relevant background and motivation for a given paper. 
@@ -45,16 +45,52 @@
             
         </p>
 
-        <h4>Current Methods:</h4>
+        <h4>Current Methods</h4>
+
+        <h5>Current methods in practice</h5>
         <p>
-          Currently, researchers find foundational papers by word-of-mouth 
-          (talking to peers/mentors or hearing about papers during lectures), 
-          by combing through reference lists, or through keyword searches on 
-          paper aggregation sites. We hope CitePaL can be a tool to supplement 
-          or replace the last two strategies.
+            Currently, researchers find foundational papers by word-of-mouth
+            (talking to peers/mentors or hearing about papers during lectures),
+            by combing through reference lists, or through keyword searches on
+            paper aggregation sites. We hope CitePaL can be a tool to supplement
+            or replace the last two strategies.
         </p>
 
-        <h4>Approach:</h4>
+        <h5>Related work</h5>
+
+        Our approach (detailed below) relies on clustering the references and on surfacing most relevant papers for specific clusters.
+        As far as we know, there is no current work which integrates both of these features into one system.
+        However, we build on a large literature in citation clustering and paper recommendation systems.
+        We note a few key papers below and how they differ from our approach.
+
+        <ul>
+            <li>
+                Eigenfactor Recommends (<a href="https://doi.org/10.1109/TBDATA.2016.2541167">
+                West et al 2016</a>) analyzes a paper's citation graph to recommend similar
+                "Expert" and "Classic" papers. This process is similar to our
+                recommendation algorithm of surfacing papers using shared
+                references. However, combining our algorithm with clustering
+                allows for a more natural exploration of the different modes of
+                a paper.
+            </li>
+            <li>
+                SPECTER embeddings (<a href="https://arxiv.org/abs/2004.07180">Cohan et al 2020</a>)
+                form the foundation of our clustering algorithm. However, they
+                could be used directly for predicting similar papers, as
+                proposed in the original paper. This covers a different use case
+                than ours, as we focus on analyzing a paper's references, which
+                may be in a different topic than the paper itself. Our tool
+                would highlight more classic papers, whereas SPECTER embeddings
+                would uncover similar contemporary papers.
+            </li>
+            <li>
+                Threddy (<a href="https://doi.org/10.1145/3526113.3545660">Kang et al 2022</a>) allows
+                exploration of related papers based on specific concepts identified in a paper. This
+                is a powerful system for finding references but requires more interaction from the user on a paper than our demo.
+            </li>
+        </ul>
+
+        <h4>Approach</h4>
         <p>
             
             We built a tool that aids researchers in finding background papers when reading
@@ -68,7 +104,7 @@
             
         </p>
 
-        <h5>Reference Hierarchy:</h5>
+        <h5>Reference Hierarchy</h5>
         <p> To group papers, we use hierachical clustering (using Ward method with euclidean distance)
             <a href="https://github.com/allenai/specter">SPECTER embeddings</a> provided by Semantic Scholar.
             We use GPT-3 (using the davinci-003 model) to generate a title for each group based on the titles of the groups or papers below it.
@@ -80,7 +116,7 @@ would have the short but descriptive title of ...</pre>
         </p>
 
 
-        <h5>Visual Exploration:</h5>
+        <h5>Visual Exploration</h5>
         <p> To facilitate the visual exploration of referenced papers, we used Altair to
             createa an interactive scatter plot. Each point represents a single paper and 
             the corpus of papers is made of two levels of references; the  references
@@ -99,7 +135,7 @@ would have the short but descriptive title of ...</pre>
         </p>
 
 
-        <h5>Recommended Papers:</h5>
+        <h5>Recommended Papers</h5>
         <p> The top ten recommended papers that appear as links after the user selects 
           “Show the graph!” or ordered first by number of “shared” citations, i.e. how 
           many of the papers in the selected hierarchies reference that paper and then 
@@ -110,7 +146,7 @@ would have the short but descriptive title of ...</pre>
         </p>
 
 
-        <h5>Example Dataset:</h5>
+        <h5>Example Dataset</h5>
         <p> The example dataset is made up of assigned readings from CSE599D: The Future 
           of Scholarly Communication. Exploring the auto-generated hierarchies of these 
           papers allows a user to quickly see an overview of the range of topics covered
