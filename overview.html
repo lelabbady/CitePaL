@@ -69,11 +69,14 @@
         </p>
 
         <h5>Reference Hierarchy:</h5>
-        <p> Information on the reference hierarchy. I group papers using hierachical clustering based on the
+        <p> To group papers, we use hierachical clustering (using Ward method with euclidean distance)
             <a href="https://github.com/allenai/specter">SPECTER embeddings</a> provided by Semantic Scholar.
-            Then, to interpret the groups, I use GPT3 to generate a title for each group based on the titles of the groups below it.
-            The group titles are the key aspect of the demo and allow the user to browse an <b>interpretable</b> hieararchy.
-
+            We use GPT-3 (using the davinci-003 model) to generate a title for each group based on the titles of the groups or papers below it.
+            We use the following prompt:
+            <pre>I am writing a review paper including the following papers:
+  [input list of paper references or group titles]
+A review paper summarizing and synthesizing all of the above papers
+would have the short but descriptive title of ...</pre>
         </p>
 
 
