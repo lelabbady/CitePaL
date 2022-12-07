@@ -36,9 +36,40 @@
               </div>
 
         <h1>CitePaL - Future Directions</h1>
-        <p>
-            Add Notes here:
-        </p>
+        <h4>Based on the user study, future iterations of CitePaL should prioritize the following improvements:</h4>
+        <ul>
+          <li>Speed</li>
+            <p>
+              Currently, CitePaL is relatively slow. Both the hierarchy clustering 
+              and populating the chart requires that the user wait for longer than 
+              a person is used to waiting for a page to load. This delay caused one 
+              user to think that the system wasn't working at all.
+              The bottleneck is querying Semantic Scholar for hundreds of papers at 
+              once. One way around this would be to store the Semantic Scholar data 
+              on our own server, but this would need to be updated regularly and is 
+              likely unsustainable.
+              An intermediate fix would be to add an animated "loading" wheel, so the 
+              user has more confidence that the site is still running.
+            </p>
+          <li>Intuitive-ness</li>
+            <p>
+              Some participants in the user study had questions about how to interpret
+               the graph. For example, there were questions about what “shared” citations 
+               really mean, whether the citation numbers were occurrences within a paper, 
+               across the papers in the hierarchy, or across all papers. One solution for 
+               this confusion could be tooltips with explanations that would show up when 
+               a user hovers over a measure. 
+            </p>
+          <li>Categorization</li>
+            <p>
+              One user wanted clearer distinction between what papers were references and 
+              what papers were contained in the selected hierarchies. In the next iteration,
+               we would include this information as well as a way to differentiate reviews 
+               from research papers, perhaps through keywords. Another category we thought 
+               could be helpful is to highlight papers that share an author with the original 
+               paper.
+            </p>
+        </ul>
 
 
     </body>
