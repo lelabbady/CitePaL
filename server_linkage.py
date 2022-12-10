@@ -183,7 +183,7 @@ class Group():
             if isinstance(item, Group):
                 titles.append(item.title)
             else:
-                titles.append(format_paper(item))
+                titles.append(format_paper_simple(item))
         return titles
 
     def has_subtitles(self):
@@ -227,6 +227,8 @@ class Group():
 
 
 def format_authors(authors):
+    if len(authors) == 0:
+        return "No authors"
     if len(authors) == 1:
         return authors[0]['name']
     elif len(authors) == 2:
@@ -236,8 +238,20 @@ def format_authors(authors):
         return "{} et al".format(authors[0]['name'])
 
 def format_paper(row):
+    try:
+        year_int = int(row['year'])
+    except TypeError:
+        year_int = "year unknown"
     return '<a href="{url}">{author_text}. ({year_int}) {title}. <i>{venue}</i></a>'.format(
-        author_text=format_authors(row['authors']), year_int=int(row['year']), **row)
+        author_text=format_authors(row['authors']), year_int=year_int, **row)
+
+def format_paper_simple(row):
+    try:
+        year_int = int(row['year'])
+    except TypeError:
+        year_int = "year unknown"
+    return '{author_text}. ({year_int}) {title}. {venue}'.format(
+        author_text=format_authors(row['authors']), year_int=year_int, **row)
 
 def render_list(rows):
     if len(rows) == 0:
@@ -419,6 +433,7 @@ def get_source_df(groups): #groups is a list of group objects
         all_df = pd.concat([all_df,ref_df])
 
     all_df = all_df[~all_df['title'].isna()]
+    all_df = all_df[~all_df['year'].isna()]
 
     shared_dict = dict(all_df.title.value_counts())
     all_df['shared_by'] = [shared_dict[i] for i in all_df.title]
